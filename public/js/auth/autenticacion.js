@@ -69,9 +69,39 @@ class Autenticacion {
   }
 
   authCuentaGoogle () {
-    //$('#avatar').attr('src', result.user.photoURL)
-    //$('.modal').modal('close')
-    //Materialize.toast(`Bienvenido ${result.user.displayName} !! `, 4000)
+    //AUTH con GOOGLE
+    // Instanciar google
+    var provider = new firebase.auth.GoogleAuthProvider();
+    // Paso de idioma a español
+    firebase.auth().languageCode = "it";
+
+    firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then((result) => {
+        /** @type {firebase.auth.OAuthCredential} */
+        var credential = result.credential;
+
+        // This gives you a Google Access Token. You can use it to access the Google API.
+        var token = credential.accessToken;
+        // The signed-in user info.
+        var user = result.user;
+        // IdP data available in result.additionalUserInfo.profile.
+        $('#avatar').attr('src', result.user.photoURL);
+        $('.modal').modal('close');
+        Materialize.toast(`Bienvenido ${result.user.displayName} !! `, 4000);
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // The email of the user's account used.
+        var email = error.email;
+        // The firebase.auth.AuthCredential type that was used.
+        var credential = error.credential;
+        $('.modal').modal('close');
+        Materialize.toast(`Error de autenticación ${error} !! `, 4000);
+      });
   }
 
   authCuentaFacebook () {
