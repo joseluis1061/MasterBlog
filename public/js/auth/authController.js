@@ -17,6 +17,9 @@ $(() => {
         const email = $('#emailSesion').val();
         const password = $('#passwordSesion').val();
         // TODO : LLamar auth cuenta con email
+        const autenticacion = new Autenticacion();
+        autenticacion.autEmailPass(email, password);
+
     });
 
     //$("#authGoogle").click(() => //AUTH con GOOGLE);
