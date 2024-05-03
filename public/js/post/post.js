@@ -1,38 +1,92 @@
 class Post {
-  constructor () {
+  constructor() {
     // TODO inicializar firestore y settings
-    const db = firebase.firestore();
-    const settings = {timestampsInSnapShots: true} // Recuperar datos como fecha
-    this.dn.settings(settings)
+    this.db = firebase.firestore();
   }
 
-  crearPost (uid, emailUser, titulo, descripcion, imagenLink, videoLink) {
-    return this.db.collection('posts').doc('123456').set({
-        uid:uid,
+  crearPost(uid, emailUser, titulo, descripcion, imagenLink, videoLink) {
+    return this.db
+      .collection("posts")
+      .add({
+        uid: uid,
         autor: emailUser,
         titulo: titulo,
         descripcion: descripcion,
         imagenLink: imagenLink,
         videoLink: videoLink,
-        fecha: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then((docRef) => {
+        fecha: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .then((docRef) => {
         console.log("Post creado ID: ", docRef.id);
-    })
-    .catch((error) => {
+        Materialize.toast(`Post creado con exito ${docRef.titulo}`, 4000);
+      })
+      .catch((error) => {
         console.error("Error creando el post: ", error);
+      });
+  }
+
+  consultarTodosPost() {
+    // Escuchar cambios en la BD mediante un observador
+    // Este esta definido en firebase en el metodo onSnapshot
+    // Se activa cada vez que hay un cambio en la colección posts
+    // Al llamar este método támbien llama los posts como si fuese un get
+    this.db.collection("posts").onSnapshot((querySnapshot) => {
+      $("#posts").empty(); //Borra todos los post
+      // Verifica si la colección detectada esta vacia
+      if (querySnapshot.empty) {
+        // Si lo esta agrega un componente que indica que no hay posts
+        $("#posts").append(this.obtenerPostTemplate());
+      } else {
+        // Si detectamos que no esta vacia recorremos todos los items
+        // de la colección posts
+        querySnapshot.forEach((post) => {
+          // Para cada posts recibido desde la bd creamos su tempalte
+          let postHtml = this.obtenerPostTemplate(
+            post.data().autor,
+            post.data().titulo,
+            post.data().descripcion,
+            post.data().videoLink,
+            post.data().imagenLink,
+            Utilidad.obtenerFecha(post.data().fecha.toDate()) // La útilidad tiene una función para formatear la fecha
+          );
+          $("#posts").append(postHtml); // Agrega cada post detectado al html
+        });
+      }
     });
   }
 
-  consultarTodosPost () {
-    
+  consultarPostxUsuario(emailUser) {
+    // Es el mismo observador que traer posts pero
+    // se agrega una comparación
+    this.db.collection("posts")
+    .where('autor', '==', emailUser)
+    .onSnapshot((querySnapshot) => {
+      $("#posts").empty(); //Borra todos los post
+      // Verifica si la colección detectada esta vacia
+      if (querySnapshot.empty) {
+        // Si lo esta agrega un componente que indica que no hay posts
+        $("#posts").append(this.obtenerPostTemplate());
+      } else {
+        // Si detectamos que no esta vacia recorremos todos los items
+        // de la colección posts
+        querySnapshot.forEach((post) => {
+          // Para cada posts recibido desde la bd creamos su tempalte
+          let postHtml = this.obtenerPostTemplate(
+            post.data().autor,
+            post.data().titulo,
+            post.data().descripcion,
+            post.data().videoLink,
+            post.data().imagenLink,
+            Utilidad.obtenerFecha(post.data().fecha.toDate()) // La útilidad tiene una función para formatear la fecha
+          );
+          $("#posts").append(postHtml); // Agrega cada post detectado al html
+        });
+      }
+    });
+
   }
 
-  consultarPostxUsuario (emailUser) {
-    
-  }
-
-  obtenerTemplatePostVacio () {
+  obtenerTemplatePostVacio() {
     return `<article class="post">
       <div class="post-titulo">
           <h5>Crea el primer Post a la comunidad</h5>
@@ -57,10 +111,10 @@ class Post {
       </div>
       <div class="post-footer container">         
       </div>
-  </article>`
+  </article>`;
   }
 
-  obtenerPostTemplate (
+  obtenerPostTemplate(
     autor,
     titulo,
     descripcion,
@@ -81,12 +135,12 @@ class Post {
                 <a class="post-estrellita-vacia" href="*"></a>
             </div>
             <div class="post-video">                
-                <img id="imgVideo" src='${imagenLink}' class="post-imagen-video" 
-                    alt="Imagen Video">     
+              <img id="imgVideo" src='${imagenLink}' class="post-imagen-video" 
+                alt="Imagen Video">     
             </div>
             <div class="post-videolink">
-                <a href="${videoLink}" target="blank">Ver Video</a>                            
-            </div>
+              <a href="${videoLink}" target="blank">Ver Video</a>                            
+            </div>            
             <div class="post-descripcion">
                 <p>${descripcion}</p>
             </div>
@@ -100,7 +154,7 @@ class Post {
                     </div>        
                 </div>
             </div>
-        </article>`
+        </article>`;
     }
 
     return `<article class="post">
@@ -115,9 +169,17 @@ class Post {
                     <a class="post-estrellita-vacia" href="*"></a>
                 </div>
                 <div class="post-video">
-                    <iframe type="text/html" width="500" height="385" src='${videoLink}'
-                        frameborder="0"></iframe>
-                    </figure>
+
+
+                    <iframe 
+                      width="500" height="385" 
+                      src='${videoLink}'
+                      frameborder="0" allow="accelerometer; 
+                      autoplay; clipboard-write; encrypted-media; 
+                      gyroscope; picture-in-picture" 
+                      allowfullscreen
+                    >
+                    </iframe>
                 </div>
                 <div class="post-videolink">
                     Video
@@ -135,6 +197,6 @@ class Post {
                         </div>        
                     </div>
                 </div>
-            </article>`
+            </article>`;
   }
 }

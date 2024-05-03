@@ -18,26 +18,44 @@ $(() => {
 
   // TODO: Recibir las notificaciones cuando el usuario esta foreground
 
-  // TODO: Recibir las notificaciones cuando el usuario esta background
+  // Recibir las notificaciones cuando el usuario esta background
+  // Este es un observador para detectar cambios en los post
+  const post = new Post();
+  post.consultarTodosPost();
 
-  // TODO: Listening real time
-
-  // TODO: Firebase observador del cambio de estado
-  //$('#btnInicioSesion').text('Salir')
-  //$('#avatar').attr('src', user.photoURL)
-  //$('#avatar').attr('src', 'imagenes/usuario_auth.png')
-  //$('#btnInicioSesion').text('Iniciar Sesión')
-  //$('#avatar').attr('src', 'imagenes/usuario.png')
+  // Listening real time
+  // Firebase observador del cambio de estado
+  firebase.auth().onAuthStateChanged(user => {
+    if(user){
+      $('#btnInicioSesion').text('Salir');
+      if(user.photoUrl){
+        $('#avatar').attr('src', user.photoUrl );
+      }else{
+        $('#avatar').attr('src', 'imagenes/usuario_auth.png');
+        
+      }
+    }else{
+      $('#btnInicioSesion').text('Iniciar Sesión')
+      $('#avatar').attr('src', 'imagenes/usuario.png')
+    }
+  })
 
   // TODO: Evento boton inicio sesion
   $('#btnInicioSesion').click(() => {
-    //$('#avatar').attr('src', 'imagenes/usuario.png')
-    // Materialize.toast(`Error al realizar SignOut => ${error}`, 4000)
+    const user = firebase.auth().currentUser;
+    if(user){
+      $('#btnInicioSesion').text('Iniciar Sesión');
+      return firebase.auth()
+        .signOut()
+        .then(()=> {
+          $('#avatar').attr('src', 'imagenes/usuario.png');
+          Materialize.toast(`Error al realizar SignOut => ${error}`, 4000);
+        })
+    }
+
     $('#emailSesion').val('');
     $('#passwordSesion').val('');
     $('#modalSesion').modal('open');
-    console.log("Inicio de sesion?")
-
   })
 
   $('#avatar').click(() => {
@@ -53,10 +71,18 @@ $(() => {
 
   $('#btnTodoPost').click(() => {
     $('#tituloPost').text('Posts de la Comunidad')   
+    const post = new Post;
+    post.consultarTodosPost(); // Trae todos los posts
   })
 
   $('#btnMisPost').click(() => {
-    //$('#tituloPost').text('Mis Posts')
-    //Materialize.toast(`Debes estar autenticado para ver tus posts`, 4000)    
+    const user = firebase.auth().currentUser;
+    if(user === null){
+      Materialize.toast(`Debes estar autenticado para ver tus posts`, 4000);
+      return
+    }
+    const post = new Post();
+    post.consultarPostxUsuario(user.email);
+    $('#tituloPost').text('Mis Posts')
   })
 })

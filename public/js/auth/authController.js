@@ -2,7 +2,6 @@ $(() => {
   //$("#authFB").click(() => );
 
   $("#btnRegistroEmail").click(() => {
-    console.log("Crear usuario: btnRegistroEmail");
     const email = $("#emailContactoReg").val();
     const password = $("#passwordReg").val();
     const nombres = $("#nombreContactoReg").val();
