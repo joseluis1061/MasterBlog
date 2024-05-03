@@ -1,11 +1,27 @@
 class Post {
   constructor () {
-      // TODO inicializar firestore y settings
-
+    // TODO inicializar firestore y settings
+    const db = firebase.firestore();
+    const settings = {timestampsInSnapShots: true} // Recuperar datos como fecha
+    this.dn.settings(settings)
   }
 
   crearPost (uid, emailUser, titulo, descripcion, imagenLink, videoLink) {
-    
+    return this.db.collection('posts').doc('123456').set({
+        uid:uid,
+        autor: emailUser,
+        titulo: titulo,
+        descripcion: descripcion,
+        imagenLink: imagenLink,
+        videoLink: videoLink,
+        fecha: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then((docRef) => {
+        console.log("Post creado ID: ", docRef.id);
+    })
+    .catch((error) => {
+        console.error("Error creando el post: ", error);
+    });
   }
 
   consultarTodosPost () {
