@@ -30,7 +30,10 @@ class Post {
     // Este esta definido en firebase en el metodo onSnapshot
     // Se activa cada vez que hay un cambio en la colección posts
     // Al llamar este método támbien llama los posts como si fuese un get
-    this.db.collection("posts").onSnapshot((querySnapshot) => {
+    this.db.collection("posts")
+    .orderBy('fecha', 'asc')
+    .orderBy('titulo', 'asc')
+    .onSnapshot((querySnapshot) => {
       $("#posts").empty(); //Borra todos los post
       // Verifica si la colección detectada esta vacia
       if (querySnapshot.empty) {
@@ -59,6 +62,7 @@ class Post {
     // Es el mismo observador que traer posts pero
     // se agrega una comparación
     this.db.collection("posts")
+    .orderBy('fecha', 'asc')
     .where('autor', '==', emailUser)
     .onSnapshot((querySnapshot) => {
       $("#posts").empty(); //Borra todos los post
