@@ -90,6 +90,59 @@ class Post {
 
   }
 
+  subirImagenPost (file, uid) {
+    console.log(`File ${file} userId ${uid}`);
+    // Initialize Cloud Storage and get a reference to the service
+    // Create a storage reference from our storage service
+    const storageRef = firebase.storage().ref();
+    // Child references can also take paths delimited by '/'
+    let spaceRef = storageRef.child(`imgsPosts/${uid}/${file.name}`);
+
+    // 'file' comes from the Blob or File API
+    let task = spaceRef.put(file)
+    .then((snapshot) => {
+      console.log('Uploaded a blob or file!', snapshot);
+    });
+
+    // Register three observers:
+    // 1. 'state_changed' observer, called any time the state changes
+    // 2. Error observer, called on failure
+    // 3. Completion observer, called on successful completion
+    task.on('state_changed', 
+      (snapshot) => {
+        // Observe state change events such as progress, pause, and resume
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        $('.determinate').attr('style', `width: ${progress}%`)
+        switch (snapshot.state) {
+          case firebase.storage.TaskState.PAUSED: // or 'paused'
+            console.log('Upload is paused');
+            break;
+          case firebase.storage.TaskState.RUNNING: // or 'running'
+            console.log('Upload is running');
+            break;
+        }
+      }, 
+      (error) => {
+        // Handle unsuccessful uploads
+        Materialize.toast(`Error subiendo archivo = > ${err.message}`, 4000)
+      }, 
+      () => {
+        // Handle successful uploads on complete
+        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+        task.snapshot.ref
+        .getDownloadURL()
+        .then((downloadURL) => {
+          console.log('File available at', downloadURL);
+          sessionStorage.setItem('imgNewPost', downloadURL);
+        }).catch(err => {
+          Materialize.toast(`Error obteniendo downloadURL = > ${err}`, 4000)
+        });
+      }
+    );
+
+  }
+
   obtenerTemplatePostVacio() {
     return `<article class="post">
       <div class="post-titulo">
