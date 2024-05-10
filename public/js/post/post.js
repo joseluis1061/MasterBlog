@@ -30,64 +30,94 @@ class Post {
     // Este esta definido en firebase en el metodo onSnapshot
     // Se activa cada vez que hay un cambio en la colección posts
     // Al llamar este método támbien llama los posts como si fuese un get
-    this.db.collection("posts")
-    .orderBy('fecha', 'asc')
-    .orderBy('titulo', 'asc')
-    .onSnapshot((querySnapshot) => {
-      $("#posts").empty(); //Borra todos los post
-      // Verifica si la colección detectada esta vacia
-      if (querySnapshot.empty) {
-        // Si lo esta agrega un componente que indica que no hay posts
-        $("#posts").append(this.obtenerPostTemplate());
-      } else {
-        // Si detectamos que no esta vacia recorremos todos los items
-        // de la colección posts
-        querySnapshot.forEach((post) => {
-          // Para cada posts recibido desde la bd creamos su tempalte
-          let postHtml = this.obtenerPostTemplate(
-            post.data().autor,
-            post.data().titulo,
-            post.data().descripcion,
-            post.data().videoLink,
-            post.data().imagenLink,
-            Utilidad.obtenerFecha(post.data().fecha.toDate()) // La útilidad tiene una función para formatear la fecha
-          );
-          $("#posts").append(postHtml); // Agrega cada post detectado al html
-        });
-      }
-    });
+    this.db
+      .collection("posts")
+      .orderBy("fecha", "asc")
+      .orderBy("titulo", "asc")
+      .onSnapshot((querySnapshot) => {
+        $("#posts").empty(); //Borra todos los post
+        // Verifica si la colección detectada esta vacia
+        if (querySnapshot.empty) {
+          // Si lo esta agrega un componente que indica que no hay posts
+          $("#posts").append(this.obtenerPostTemplate());
+        } else {
+          // Si detectamos que no esta vacia recorremos todos los items
+          // de la colección posts
+          querySnapshot.forEach((post) => {
+            // Para cada posts recibido desde la bd creamos su tempalte
+            let postHtml = this.obtenerPostTemplate(
+              post.data().autor,
+              post.data().titulo,
+              post.data().descripcion,
+              post.data().videoLink,
+              post.data().imagenLink,
+              Utilidad.obtenerFecha(post.data().fecha.toDate()) // La útilidad tiene una función para formatear la fecha
+            );
+            $("#posts").append(postHtml); // Agrega cada post detectado al html
+          });
+        }
+      });
   }
 
   consultarPostxUsuario(emailUser) {
     // Es el mismo observador que traer posts pero
     // se agrega una comparación
-    this.db.collection("posts")
-    .orderBy('fecha', 'asc')
-    .where('autor', '==', emailUser)
-    .onSnapshot((querySnapshot) => {
-      $("#posts").empty(); //Borra todos los post
-      // Verifica si la colección detectada esta vacia
-      if (querySnapshot.empty) {
-        // Si lo esta agrega un componente que indica que no hay posts
-        $("#posts").append(this.obtenerPostTemplate());
-      } else {
-        // Si detectamos que no esta vacia recorremos todos los items
-        // de la colección posts
-        querySnapshot.forEach((post) => {
-          // Para cada posts recibido desde la bd creamos su tempalte
-          let postHtml = this.obtenerPostTemplate(
-            post.data().autor,
-            post.data().titulo,
-            post.data().descripcion,
-            post.data().videoLink,
-            post.data().imagenLink,
-            Utilidad.obtenerFecha(post.data().fecha.toDate()) // La útilidad tiene una función para formatear la fecha
-          );
-          $("#posts").append(postHtml); // Agrega cada post detectado al html
-        });
-      }
-    });
+    this.db
+      .collection("posts")
+      .orderBy("fecha", "asc")
+      .where("autor", "==", emailUser)
+      .onSnapshot((querySnapshot) => {
+        $("#posts").empty(); //Borra todos los post
+        // Verifica si la colección detectada esta vacia
+        if (querySnapshot.empty) {
+          // Si lo esta agrega un componente que indica que no hay posts
+          $("#posts").append(this.obtenerPostTemplate());
+        } else {
+          // Si detectamos que no esta vacia recorremos todos los items
+          // de la colección posts
+          querySnapshot.forEach((post) => {
+            // Para cada posts recibido desde la bd creamos su tempalte
+            let postHtml = this.obtenerPostTemplate(
+              post.data().autor,
+              post.data().titulo,
+              post.data().descripcion,
+              post.data().videoLink,
+              post.data().imagenLink,
+              Utilidad.obtenerFecha(post.data().fecha.toDate()) // La útilidad tiene una función para formatear la fecha
+            );
+            $("#posts").append(postHtml); // Agrega cada post detectado al html
+          });
+        }
+      });
+  }
 
+  subirImagenPost(file, uid){
+    console.log(`File => ${file} uid ${uid}`)
+		// Initialize Cloud Storage and get a reference to the service
+		const refStorage = firebase.storage().ref(`imgsPosts/${uid}/${file.name}`);
+    const task = refStorage.put(file);
+    // Observador de estado de subida de información
+    task.on('state-changed', 
+    // Copia del estado del archivo
+    snapShot => {
+      // Deseamos ver el tamaño del archivo y cuanto % ha subido y mostrarle al usuario
+      const porcentaje = snapShot.bytesTransferred / snapShot.totalBytes * 100;
+      $('.determinate').attr('style', `width: ${porcentaje}%`);
+    },
+    error => {
+      Materialize.toast(`Error subiendo el archivo => ${error.message}`, 4000);
+    },
+    () => {
+      //Al finalizar muestro la url del archivo al usuario
+      task.snapShot.getDownloadURL()
+      .then(url => {
+        console.log(url);
+        // Almacenar la url en el storage
+        sessionStorage.setItem('imgNewPost', url);
+      }).catch(error => {
+        Materialize.toast(`Error subiendo el archivo => ${error.message}`, 4000);
+      })
+    })
   }
 
   obtenerTemplatePostVacio() {
