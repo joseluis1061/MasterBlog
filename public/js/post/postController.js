@@ -7,7 +7,7 @@ $(() => {
     $('.determinate').attr('style', `width: 0%`)
     sessionStorage.setItem('imgNewPost', null)
 
-    // TODO: Validar que el usuario esta autenticado
+    // Validar que el usuario esta autenticado
     const user = firebase.auth().currentUser;
     if(user === null){
       Materialize.toast(`Para crear el post debes estar autenticado`, 4000);
@@ -18,7 +18,7 @@ $(() => {
 
   $('#btnRegistroPost').click(() => {
     const post = new Post();
-    // TODO: Validar que el usuario esta autenticado
+    // Validar que el usuario esta autenticado
     const user = firebase.auth().currentUser;
     if(user.uid === null){
       Materialize.toast(`Para crear el post debes estar autenticado`, 4000);
@@ -61,4 +61,36 @@ $(() => {
     const post = new Post()
     post.subirImagenPost(file, user.uid)
   })
+
+  $('#btnComentarios').click(() => {
+    // Validar que el usuario esta autenticado
+    const user = firebase.auth().currentUser;
+    if(user.uid === null){
+      Materialize.toast(`Para crear el post debes estar autenticado`, 4000);
+      return;
+    }
+    
+    const nombreContacto = $('#nombreContacto').val();
+    const emailContacto = $('#emailContacto').val();
+    const comentarioTipo = $('#comentarioTipo').prop('checked');
+    const reclamoTipo = $('#reclamoTipo').prop('checked');
+    const mejoraTipo = $('#mejoraTipo').prop('checked');
+    const otroTipo = $('#otroTipo').prop('checked');
+    const comentariosContacto = $('#comentariosContacto').val();
+    
+    const post = new Post();
+    post.crearComentario(
+      user.uid, 
+      user.email,
+      nombreContacto,
+      emailContacto,
+      comentarioTipo,
+      reclamoTipo,
+      mejoraTipo,
+      otroTipo,
+      comentariosContacto
+    )
+
+  })
+
 })

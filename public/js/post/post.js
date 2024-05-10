@@ -91,7 +91,6 @@ class Post {
   }
 
   subirImagenPost (file, uid) {
-    console.log(`File ${file} userId ${uid}`);
     // Initialize Cloud Storage and get a reference to the service
     // Create a storage reference from our storage service
     const storageRef = firebase.storage().ref();
@@ -255,5 +254,30 @@ class Post {
                     </div>
                 </div>
             </article>`;
+  }
+
+  crearComentario(uid, emailUser, nombreContacto, emailContacto, comentarioTipo, reclamoTipo, mejoraTipo, otroTipo, comentariosContacto) {
+    return this.db
+      .collection("comentarios")
+      .add({
+        uid: uid,
+        autor: emailUser,
+        nombreContacto: nombreContacto, 
+        emailContacto: emailContacto, 
+        comentarioTipo: comentarioTipo, 
+        reclamoTipo: reclamoTipo, 
+        mejoraTipo: mejoraTipo, 
+        otroTipo: otroTipo, 
+        comentariosContacto: comentariosContacto,
+        fecha: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .then((docRef) => {
+        console.log("Comentario creado ID: ", docRef.id);
+        Materialize.toast(`Comentario creado con exito por ${docRef.autor}`, 4000);
+      })
+      .catch((error) => {
+        console.error("Error creando el error: ", error);
+        Materialize.toast(`Error al crear el comentario ${error}`, 4000);
+      });
   }
 }
