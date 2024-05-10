@@ -120,6 +120,58 @@ class Post {
     })
   }
 
+  subirImagenPost (file, uid) {
+    // Initialize Cloud Storage and get a reference to the service
+    // Create a storage reference from our storage service
+    const storageRef = firebase.storage().ref();
+    // Child references can also take paths delimited by '/'
+    let spaceRef = storageRef.child(`imgsPosts/${uid}/${file.name}`);
+
+    // 'file' comes from the Blob or File API
+    let task = spaceRef.put(file)
+    .then((snapshot) => {
+      console.log('Uploaded a blob or file!', snapshot);
+    });
+
+    // Register three observers:
+    // 1. 'state_changed' observer, called any time the state changes
+    // 2. Error observer, called on failure
+    // 3. Completion observer, called on successful completion
+    task.on('state_changed', 
+      (snapshot) => {
+        // Observe state change events such as progress, pause, and resume
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        $('.determinate').attr('style', `width: ${progress}%`)
+        switch (snapshot.state) {
+          case firebase.storage.TaskState.PAUSED: // or 'paused'
+            console.log('Upload is paused');
+            break;
+          case firebase.storage.TaskState.RUNNING: // or 'running'
+            console.log('Upload is running');
+            break;
+        }
+      }, 
+      (error) => {
+        // Handle unsuccessful uploads
+        Materialize.toast(`Error subiendo archivo = > ${err.message}`, 4000)
+      }, 
+      () => {
+        // Handle successful uploads on complete
+        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+        task.snapshot.ref
+        .getDownloadURL()
+        .then((downloadURL) => {
+          console.log('File available at', downloadURL);
+          sessionStorage.setItem('imgNewPost', downloadURL);
+        }).catch(err => {
+          Materialize.toast(`Error obteniendo downloadURL = > ${err}`, 4000)
+        });
+      }
+    );
+
+  }
+
   obtenerTemplatePostVacio() {
     return `<article class="post">
       <div class="post-titulo">
@@ -232,5 +284,30 @@ class Post {
                     </div>
                 </div>
             </article>`;
+  }
+
+  crearComentario(uid, emailUser, nombreContacto, emailContacto, comentarioTipo, reclamoTipo, mejoraTipo, otroTipo, comentariosContacto) {
+    return this.db
+      .collection("comentarios")
+      .add({
+        uid: uid,
+        autor: emailUser,
+        nombreContacto: nombreContacto, 
+        emailContacto: emailContacto, 
+        comentarioTipo: comentarioTipo, 
+        reclamoTipo: reclamoTipo, 
+        mejoraTipo: mejoraTipo, 
+        otroTipo: otroTipo, 
+        comentariosContacto: comentariosContacto,
+        fecha: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .then((docRef) => {
+        console.log("Comentario creado ID: ", docRef.id);
+        Materialize.toast(`Comentario creado con exito por ${docRef.autor}`, 4000);
+      })
+      .catch((error) => {
+        console.error("Error creando el error: ", error);
+        Materialize.toast(`Error al crear el comentario ${error}`, 4000);
+      });
   }
 }
